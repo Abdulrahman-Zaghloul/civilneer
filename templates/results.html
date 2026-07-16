@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}QC Results | Civilneer{% endblock %}
+
+{% block content %}
+{% set review_pages = page_statuses.get("REVIEW", 0) %}
+{% set flag_pages = page_statuses.get("FLAG", 0) %}
+{% set fail_pages = page_statuses.get("FAIL", 0) %}
+{% set attention_pages = review_pages + flag_pages + fail_pages %}
+
+{% set slope_review = slope_summary.get("REVIEW", 0) %}
+{% set slope_flag = slope_summary.get("FLAG", 0) %}
+{% set slope_fail = slope_summary.get("FAIL", 0) %}
+{% set elevation_review = elevation_summary.get("REVIEW", 0) %}
+{% set elevation_flag = elevation_summary.get("FLAG", 0) %}
+{% set elevation_fail = elevation_summary.get("FAIL", 0) %}
+{% set attention_checks = slope_review + slope_flag + slope_fail + elevation_review + elevation_flag + elevation_fail %}
+
+<section class="results-section">
+    <div class="container">
+        <div class="results-header">
+            <div>
+                <span class="eyebrow">Analysis complete</span>
+                <h1>QC Results</h1>
+                <p>Review the marked PDF, findings table, and downloadable QC package.</p>
+            </div>
+
+            <a class="secondary-button" href="/">Analyze another PDF</a>
+        </div>
+
+        <section class="summary-grid">
+            <article class="summary-card">
+                <span>Pages analyzed</span>
+                <strong>{{ total_pages }}</strong>
+                <p>{{ page_statuses.get("PASS", 0) }} passed</p>
+            </article>
+
+            <article class="summary-card">
+                <span>Slope checks</span>
+                <strong>{{ slope_summary.get("total", 0) }}</strong>
+                <p>{{ slope_summary.get("PASS", 0) }} passed</p>
+            </article>
+
+            <article class="summary-card">
+                <span>Elevation checks</span>
+                <strong>{{ elevation_summary.get("total", 0) }}</strong>
+                <p>{{ elevation_summary.get("PASS", 0) }} passed</p>
+            </article>
+
+            <article class="summary-card">
+                <span>Needs review / flagged</span>
+                <strong>{{ attention_pages }}</strong>
+                <p>Pages needing attention</p>
+            </article>
+        </section>
+
+        {% if attention_checks > 0 %}
+        <section class="status-banner status-flag">
+            <span>Needs engineering attention</span>
+            <h2>Analysis completed with review items</h2>
+            <p>{{ attention_checks }} check(s) should be reviewed manually.</p>
+        </section>
+        {% else %}
+        <section class="status-banner status-pass">
+            <span>No flagged items</span>
+            <h2>Analysis completed successfully</h2>
+            <p>No review or flag items were found. Download the package for the full record.</p>
+        </section>
+        {% endif %}
+
+        <section class="card preprocessing-card">
+            <h2>Preprocessing</h2>
+
+            {% if preprocessing.was_split %}
+                <p>This PDF contained multiple cross sections on at least one page, so Civilneer created a normalized PDF before QC.</p>
+
+                <div class="pill-row">
+                    <span class="pill review">Auto-split: ON</span>
+                    <span class="pill">Original pages: {{ preprocessing.source_pages }}</span>
+                    <span class="pill">Analysis pages: {{ preprocessing.analysis_pages }}</span>
+                </div>
+            {% else %}
+                <p>No multi-section page split was needed. The uploaded PDF was analyzed directly.</p>
+
+                <div class="pill-row">
+                    <span class="pill pass">Auto-split: Not needed</span>
+                    <span class="pill">Pages: {{ preprocessing.analysis_pages or total_pages }}</span>
+                </div>
+            {% endif %}
+        </section>
+
+        {% if result.artifacts.marked_pdf %}
+        <section class="preview-section">
+            <span class="eyebrow">Visual review</span>
+            <h2>PDF Preview</h2>
+            <p>Review the marked drawing directly in the browser.</p>
+
+            <section class="card preview-card">
+                <div class="preview-card-header">
+                    <div>
+                        <h3>Marked Drawing</h3>
+                        <p>Transparent status markers show checked items on the drawing.</p>
+                    </div>
+
+                    <a href="/preview/{{ run_name }}/marked_pdf" target="_blank">Open full size</a>
+                </div>
+
+                <iframe
+                    class="pdf-preview-frame"
+                    src="/preview/{{ run_name }}/marked_pdf"
+                    title="Marked drawing PDF preview">
+                </iframe>
+            </section>
+        </section>
+        {% endif %}
+
+        <section class="card findings-card">
+            <span class="eyebrow">Review table</span>
+            <h2>Findings</h2>
+            <p>These rows connect the S#/E# markers on the marked PDF to the measured values.</p>
+
+            {% if finding_page_groups %}
+                {% for group in finding_page_groups %}
+                <div class="findings-page-block">
+                    <div class="findings-page-header">
+                        <h3>{{ group.title }}</h3>
+                        <span>{{ group.count }} finding(s)</span>
+                    </div>
+
+                    <div class="findings-table-wrap">
+                        <table class="findings-table">
+                            <thead>
+                                <tr>
+                                    <th>Mark</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Printed</th>
+                                    <th>Target</th>
+                                    <th>Measured</th>
+                                    <th>Diff.</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for row in group.rows %}
+                                <tr>
+                                    <td><strong>{{ row.marker }}</strong></td>
+                                    <td>{{ row.type }}</td>
+                                    <td>
+                                        <span class="pill {{ row.status | lower }}">
+                                            {{ row.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ row.printed }}</td>
+                                    <td>{{ row.target }}</td>
+                                    <td>{{ row.measured }}</td>
+                                    <td>{{ row.difference }}</td>
+                                    <td>{{ row.reason or "—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-message">No slope or elevation findings were generated.</p>
+            {% endif %}
+        </section>
+
+        <section class="summary-download-grid">
+            <section class="card page-summary-card">
+                <h2>Page Summary</h2>
+
+                <div class="summary-group">
+                    <span class="pill">Total: {{ total_pages }}</span>
+                    <span class="pill pass">PASS: {{ page_statuses.get("PASS", 0) }}</span>
+                    <span class="pill review">REVIEW: {{ page_statuses.get("REVIEW", 0) }}</span>
+                    <span class="pill flag">FLAG: {{ page_statuses.get("FLAG", 0) }}</span>
+                    <span class="pill fail">FAIL: {{ page_statuses.get("FAIL", 0) }}</span>
+                </div>
+
+                <h3>Slope Checks</h3>
+                <div class="summary-group">
+                    <span class="pill">Total: {{ slope_summary.get("total", 0) }}</span>
+                    <span class="pill pass">PASS: {{ slope_summary.get("PASS", 0) }}</span>
+                    <span class="pill review">REVIEW: {{ slope_summary.get("REVIEW", 0) }}</span>
+                    <span class="pill flag">FLAG: {{ slope_summary.get("FLAG", 0) }}</span>
+                    <span class="pill fail">FAIL: {{ slope_summary.get("FAIL", 0) }}</span>
+                </div>
+
+                <h3>Elevation Checks</h3>
+                <div class="summary-group">
+                    <span class="pill">Total: {{ elevation_summary.get("total", 0) }}</span>
+                    <span class="pill pass">PASS: {{ elevation_summary.get("PASS", 0) }}</span>
+                    <span class="pill review">REVIEW: {{ elevation_summary.get("REVIEW", 0) }}</span>
+                    <span class="pill flag">FLAG: {{ elevation_summary.get("FLAG", 0) }}</span>
+                    <span class="pill fail">FAIL: {{ elevation_summary.get("FAIL", 0) }}</span>
+                </div>
+            </section>
+
+            <section class="card downloads-card clean-package-card">
+                <div class="package-card-top">
+                    <span class="package-badge">Zero-retention package</span>
+                    <h2>Download QC Package</h2>
+                    <p>
+                        Get the polished review files. After the package is sent,
+                        the temporary server-side analysis files are deleted.
+                    </p>
+                </div>
+
+                <div class="package-files">
+                    <div class="package-file">
+                        <div class="package-file-icon">PDF</div>
+                        <div>
+                            <strong>QC Report PDF</strong>
+                            <small>Text-based findings report for engineering review</small>
+                        </div>
+                    </div>
+
+                    <div class="package-file">
+                        <div class="package-file-icon">PDF</div>
+                        <div>
+                            <strong>Marked Drawing PDF</strong>
+                            <small>Visual overlay with PASS, REVIEW, and FLAG markers</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="package-form" method="post" action="/download-all-delete/{{ run_name }}">
+                    <button class="package-download-button" type="submit">
+                        Download Package
+                    </button>
+                </form>
+
+                <p class="package-privacy-note">
+                    Zero-retention mode: raw JSON/debug files are internal only and are not included in user downloads.
+                </p>
+            </section>
+        </section>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,9 @@
+services:
+  pdf-qc-app:
+    build: .
+    env_file:
+      - .env
+    container_name: pdf-qc-app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

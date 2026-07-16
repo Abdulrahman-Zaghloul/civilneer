@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Civilneer | Engineering PDF Review{% endblock %}
+
+{% block content %}
+<main class="landing-page">
+  <section class="landing-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+
+    <div class="landing-container hero-layout">
+      <div class="hero-copy reveal-up">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Engineering PDF review platform
+        </div>
+
+        <h1>Review civil engineering PDFs faster.</h1>
+
+        <p class="hero-lead">
+          Civilneer helps engineering teams turn uploaded drawings into marked review
+          outputs, structured findings, and clean QC report packages.
+        </p>
+
+        <div class="hero-actions">
+          <a class="primary-cta" href="/cross-section-analyzer">
+            Open Cross-Section Analyzer
+            <span>→</span>
+          </a>
+          <a class="secondary-cta" href="#how-it-works">
+            See how it works
+          </a>
+        </div>
+
+        <div class="hero-trust-row">
+          <span>Private beta</span>
+          <span>Marked PDF output</span>
+          <span>Report package</span>
+        </div>
+      </div>
+
+      <div class="product-preview reveal-up delay-1">
+        <div class="preview-window">
+          <div class="preview-topbar">
+            <div class="window-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <span class="preview-title">Civilneer Analyzer</span>
+          </div>
+
+          <div class="preview-content">
+            <div class="preview-upload-card">
+              <div>
+                <p class="mini-label">PDF uploaded</p>
+                <h3>Roadway cross-section sheet</h3>
+              </div>
+              <span class="status-pill status-processing">Analyzing</span>
+            </div>
+
+            <div class="preview-summary-grid">
+              <div>
+                <span>Pages</span>
+                <strong>2</strong>
+              </div>
+              <div>
+                <span>Slope checks</span>
+                <strong>8</strong>
+              </div>
+              <div>
+                <span>Flags</span>
+                <strong>2</strong>
+              </div>
+            </div>
+
+            <div class="preview-drawing">
+              <div class="drawing-grid"></div>
+              <span class="marker marker-pass">S1</span>
+              <span class="marker marker-pass marker-two">S2</span>
+              <span class="marker marker-flag marker-three">S3</span>
+              <div class="drawing-line line-one"></div>
+              <div class="drawing-line line-two"></div>
+            </div>
+
+            <div class="preview-table">
+              <div class="preview-row">
+                <span>S1</span>
+                <span>PASS</span>
+                <span>0.5000</span>
+              </div>
+              <div class="preview-row">
+                <span>S2</span>
+                <span>PASS</span>
+                <span>0.0987</span>
+              </div>
+              <div class="preview-row flagged">
+                <span>S3</span>
+                <span>FLAG</span>
+                <span>0.3511</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section">
+    <div class="landing-container benefit-grid">
+      <article class="benefit-card reveal-up">
+        <div class="benefit-icon">01</div>
+        <h2>Faster review cycles</h2>
+        <p>Quickly surface measured checks, flagged items, and review-ready summaries from uploaded engineering PDFs.</p>
+      </article>
+
+      <article class="benefit-card reveal-up delay-1">
+        <div class="benefit-icon">02</div>
+        <h2>Clear QC packages</h2>
+        <p>Generate a marked drawing PDF and a clean report package that connects drawing markers to measured values.</p>
+      </article>
+
+      <article class="benefit-card reveal-up delay-2">
+        <div class="benefit-icon">03</div>
+        <h2>Reviewer-first workflow</h2>
+        <p>Designed to support engineering judgment with PASS, REVIEW, and FLAG outputs instead of replacing the reviewer.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="landing-section workflow-section">
+    <div class="landing-container">
+      <div class="section-heading reveal-up">
+        <p class="eyebrow">How it works</p>
+        <h2>From PDF upload to review package.</h2>
+        <p>Start with cross-section sheets today. Expand into broader engineering review workflows later.</p>
+      </div>
+
+      <div class="workflow-grid">
+        <div class="workflow-step reveal-up">
+          <span>1</span>
+          <h3>Upload drawing</h3>
+          <p>Add a roadway cross-section PDF through the analyzer.</p>
+        </div>
+
+        <div class="workflow-step reveal-up delay-1">
+          <span>2</span>
+          <h3>Run checks</h3>
+          <p>Civilneer extracts labels, measures geometry, and organizes findings.</p>
+        </div>
+
+        <div class="workflow-step reveal-up delay-2">
+          <span>3</span>
+          <h3>Download package</h3>
+          <p>Receive the marked drawing and text-based QC report package.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section analyzer-section">
+    <div class="landing-container analyzer-panel reveal-up">
+      <div>
+        <p class="eyebrow">Available now</p>
+        <h2>Cross-Section Analyzer</h2>
+        <p>
+          The first Civilneer tool focuses on roadway cross-section PDFs, printed slope labels,
+          elevation labels, measured PDF geometry, and marked review outputs.
+        </p>
+      </div>
+
+      <a class="primary-cta" href="/cross-section-analyzer">
+        Launch Analyzer
+        <span>→</span>
+      </a>
+    </div>
+  </section>
+</main>
+{% endblock %}

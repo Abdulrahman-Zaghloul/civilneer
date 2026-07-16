@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.beta.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Local uploads and generated outputs
+input_pdfs/
+web_uploads/
+web_jobs/
+outputs/
+reports/
+debug/
+tmp/
+temp/
+*.zip
+
+# Generated PDFs / reports / debug artifacts
+*civcheck_qc_package*
+*marked*.pdf
+*report*.pdf
+*debug*.json
+single_section_results.json
+ai_evidence.json
+tests/regression_outputs/
+tests/regression_cases.local.json
+
+# Legacy/private experiments
+_legacy_experiments/
+
+# Logs
+*.log
+logs/
+
+# Docker/local data
+docker-data/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

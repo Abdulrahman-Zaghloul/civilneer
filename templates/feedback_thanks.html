@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback Received | Civilneer{% endblock %}
+
+{% block content %}
+<section class="results-section">
+    <div class="container">
+        <section class="card error-card">
+            <span class="eyebrow">Feedback received</span>
+            <h1>Thank you</h1>
+            <p>Your feedback was saved without storing the uploaded PDF or raw analysis JSON.</p>
+
+            <div class="error-actions">
+                <a class="primary-button" href="/results/{{ run_name }}">Back to results</a>
+                <a class="secondary-button" href="/">Upload another PDF</a>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}

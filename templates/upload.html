@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Cross-Section Analyzer | Civilneer{% endblock %}
+
+{% block content %}
+<section class="upload-hero">
+    <div class="container upload-hero-grid">
+        <div class="upload-copy">
+            <span class="eyebrow">Private beta</span>
+
+            <h1>Civilneer Cross Section Reviewer.</h1>
+
+            <p class="hero-text">
+                Civilneer analyzes roadway cross-section PDFs in zero-retention mode and returns
+                a marked drawing plus a QC report package for engineering review.
+            </p>
+
+            <div class="beta-checks">
+                <div>
+                    <strong>Supported now</strong>
+                    <span>Cross-section slope and elevation review</span>
+                </div>
+
+                <div>
+                    <strong>Output</strong>
+                    <span>Marked PDF + QC Report PDF package</span>
+                </div>
+
+                <div>
+                    <strong>Privacy mode</strong>
+                    <span>No project history or raw JSON downloads</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="card upload-card">
+            <span class="eyebrow">Analyze PDF</span>
+            <h2>Analyze a cross-section PDF</h2>
+
+            <p>
+                Private beta limit: up to {{ max_upload_mb }} MB and {{ max_upload_pages }} pages.
+            </p>
+
+            <form class="upload-form" action="/analyze" method="post" enctype="multipart/form-data">
+                <label class="file-drop custom-file-drop">
+                    <input id="pdf-file-input" type="file" name="pdf" accept="application/pdf,.pdf" required>
+
+                    <span class="file-drop-icon">PDF</span>
+
+                    <span class="file-drop-title">Choose a PDF to analyze</span>
+
+                    <small id="selected-file-name">
+                        Cross-section PDF sheets work best.
+                    </small>
+                </label>
+
+                <button class="primary-button" type="submit">
+                    Analyze PDF
+                </button>
+            </form>
+        </section>
+    </div>
+</section>
+
+<section class="container beta-info-grid">
+    <article class="card beta-info-card">
+        <h3>What this beta checks</h3>
+        <p>
+            The current beta focuses on cross-section sheets, printed slope labels,
+            measured PDF geometry, and elevation labels.
+        </p>
+    </article>
+
+    <article class="card beta-info-card">
+        <h3>What happens to files</h3>
+        <p>
+            Files are processed in a temporary workspace. The downloadable package contains
+            polished PDF artifacts only.
+        </p>
+    </article>
+
+    <article class="card beta-info-card">
+        <h3>What is coming later</h3>
+        <p>
+            Future modules may support profile sheets, plan sheets, manual section selection,
+            and broader engineering review workflows.
+        </p>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const input = document.getElementById("pdf-file-input");
+    const selectedFileName = document.getElementById("selected-file-name");
+
+    input.addEventListener("change", () => {
+        if (input.files.length > 0) {
+            selectedFileName.textContent = input.files[0].name;
+            selectedFileName.classList.add("has-file");
+        }
+    });
+</script>
+{% endblock %}

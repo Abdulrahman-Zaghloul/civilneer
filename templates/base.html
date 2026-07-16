@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Civilneer{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/static/styles.css?v=20260714-landing">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <div>
+                <a href="/" class="brand">Civilneer</a>
+                <p class="brand-subtitle">Engineering PDF review platform</p>
+            </div>
+
+            <nav class="nav">
+                <a href="/cross-section-analyzer">Analyzer</a>
+                <button class="nav-button" type="button" data-open-feedback>Feedback</button>
+                <a href="mailto:contact@civilneer.ai">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>This automated QC supports, but does not replace, review by a qualified engineer.</p>
+        </div>
+    </footer>
+
+
+<div class="feedback-modal-backdrop" data-feedback-modal hidden>
+    <div class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+        <div class="feedback-modal-header">
+            <div>
+                <span class="eyebrow">Private beta feedback</span>
+                <h2 id="feedback-modal-title">Help improve Civilneer</h2>
+            </div>
+
+            <button class="modal-close-button" type="button" data-close-feedback aria-label="Close feedback form">
+                ×
+            </button>
+        </div>
+
+        <p class="feedback-modal-copy">
+            Report incorrect findings, confusing markers, missed issues, or workflow suggestions.
+            Do not include confidential project details.
+        </p>
+
+        <form class="feedback-form" method="post" action="/feedback/{{ run_name | default('general') }}">
+            <label>
+                Feedback type
+                <select name="feedback_type" required>
+                    <option value="incorrect_result">Incorrect result</option>
+                    <option value="missed_issue">Missed issue</option>
+                    <option value="confusing_output">Confusing output</option>
+                    <option value="feature_request">Feature request</option>
+                    <option value="general_feedback">General feedback</option>
+                </select>
+            </label>
+
+            <label>
+                Message
+                <textarea name="message" rows="5" placeholder="Example: S3 was flagged but the slope appears correct because..." required></textarea>
+            </label>
+
+            <button class="primary-button feedback-submit-button" type="submit">
+                Send Feedback
+            </button>
+        </form>
+    </div>
+</div>
+
+
+    {% block scripts %}{% endblock %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const modal = document.querySelector("[data-feedback-modal]");
+        const openButtons = document.querySelectorAll("[data-open-feedback]");
+        const closeButtons = document.querySelectorAll("[data-close-feedback]");
+
+        if (!modal) return;
+
+        openButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                modal.hidden = false;
+                document.body.classList.add("modal-open");
+            });
+        });
+
+        closeButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                modal.hidden = true;
+                document.body.classList.remove("modal-open");
+            });
+        });
+
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.hidden = true;
+                document.body.classList.remove("modal-open");
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !modal.hidden) {
+                modal.hidden = true;
+                document.body.classList.remove("modal-open");
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+pymupdf
+pydantic
+pillow
+anthropic
+fastapi
+uvicorn
+python-multipart
+reportlab
+jinja2

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Request Error | Civilneer{% endblock %}
+
+{% block content %}
+<section class="results-section">
+    <div class="container">
+        <section class="card error-card">
+            <span class="eyebrow">Request issue</span>
+
+            <h1>{{ title }}</h1>
+
+            <p>{{ message }}</p>
+
+            <div class="error-actions">
+                <a class="primary-button" href="/">Upload another PDF</a>
+            </div>
+
+            <p class="error-note">
+                Zero-retention mode means temporary analysis files may be deleted after download or after the session expires.
+            </p>
+        </section>
+    </div>
+</section>
+{% endblock %}
