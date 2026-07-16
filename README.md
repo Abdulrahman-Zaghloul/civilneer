@@ -1,126 +1,153 @@
-# PDF Engineer Agent
+# Civilneer
 
-A local web app and command-line tool for reviewing engineering cross-section PDFs.
+Civilneer is a web-based PDF review assistant for civil engineering cross-section sheets. It analyzes uploaded cross-section PDFs, extracts slope and elevation labels, compares them against measured PDF geometry, and generates a marked PDF along with a text-based engineering review report.
 
-The app reads civil engineering cross-section drawings, extracts slope labels and geometry, compares the printed design slopes against measured PDF geometry, and generates review artifacts for an engineer to inspect.
+> **Disclaimer:** Civilneer is an engineering review aid. It does **not** replace review by a licensed Professional Engineer.
 
-## What It Does
+---
 
-- Upload a cross-section PDF through a web interface
-- Automatically split stacked cross sections into one section per analysis page
-- Extract printed slope labels such as `1:2`, `1:10`, `0.8%`, and `0.50%`
-- Measure nearby PDF geometry
-- Compare printed slope labels against measured geometry
-- Generate a QC report PDF
-- Generate a marked PDF with transparent status dots
-- Generate JSON results for debugging or future automation
+## Features
 
-## Outputs
+- Upload civil engineering cross-section PDFs
+- Detect printed slope labels such as `2.00%`, `1:4`, and `1:2`
+- Measure nearby PDF geometry and compare it against printed values
+- Detect elevation labels such as `EL. 45.50`
+- Calibrate profile grid elevations where possible
+- Generate:
+  - Marked PDF
+  - Text-based report PDF
+  - Downloadable review package
 
-After analysis, the app produces:
+---
 
-- `single_section_report.pdf` — summary report with pass, review, and flag results
-- `single_section_marked.pdf` — original drawing marked with transparent status dots
-- `single_section_results.json` — structured machine-readable results
-- `preprocessing_report.json` — information about PDF splitting/preprocessing
+## Current Scope
 
-## Status Meanings
+Civilneer currently focuses on **cross-section review workflows**.
 
-| Status | Meaning |
-|---|---|
-| PASS | The measured geometry confidently matches the printed label within tolerance |
-| REVIEW | The app could not confidently verify the item and a human should review it |
-| FLAG | The app confidently found a mismatch outside tolerance |
-| FAIL | A processing/runtime issue occurred |
+Supported review areas include:
 
-Important: uncertain checks should be marked as `REVIEW`, not `FLAG`.
+- Slope label validation
+- Elevation label validation
+- Marked drawing generation
+- Compact engineering report generation
+- Local Docker-based web application workflow
 
-## Run With Docker
+---
 
-Build and start the web app:
+## Tech Stack
+
+- Python
+- FastAPI
+- Jinja2
+- PyMuPDF
+- pdfminer.six
+- Docker
+- HTML/CSS
+
+---
+
+## Project Structure
+
+```text
+app/                 Core PDF analysis and web application logic
+app/checks/          Slope and elevation validation checks
+templates/           Jinja2 HTML templates
+static/              CSS and front-end assets
+Dockerfile           Container build
+docker-compose.yml   Local Docker workflow
+```
+
+---
+
+## Running Locally
+
+Clone the repository:
+
+```bash
+git clone git@github.com:Abdulrahman-Zaghloul/civilneer-public.git
+cd civilneer-public
+```
+
+Optional: create a local environment file if you want to customize runtime settings:
+
+```bash
+cp .env.example .env
+```
+
+Start the application:
 
 ```bash
 docker compose up --build
 ```
 
-Open the app:
+Open your browser:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Stop the app:
-
-```bash
-docker compose down
-```
-
-## Run From the Command Line
-
-Analyze a PDF directly:
-
-```bash
-python -m app.main input_pdfs/your_file.pdf --single-cross-section-mode
-```
-
-Open the latest results:
-
-```bash
-LATEST_SINGLE=$(ls -td runs_single_section/* | head -1)
-
-xdg-open "$LATEST_SINGLE/reports/single_section_report.pdf"
-xdg-open "$LATEST_SINGLE/reports/single_section_marked.pdf"
-```
-
-## Auto-Splitting
-
-If a PDF page contains multiple stacked cross sections, the app attempts to create a normalized PDF where each cross section is placed on its own analysis page.
-
-The results page shows whether auto-splitting was used.
-
-Current auto-splitting is designed for stacked cross sections with detectable station labels. Unsupported layouts should be marked for review rather than treated as confirmed failures.
-
-## Marked PDF Legend
-
-The marked PDF uses transparent dots:
-
-- Green dot = PASS
-- Orange dot = REVIEW
-- Red dot = FLAG/FAIL
-
-Small labels such as `S1`, `S2`, and `S3` connect each marked item to the report table.
-
-## Project Structure
+The Cross-Section Analyzer is available at:
 
 ```text
-app/
-  checks/                  QC check logic
-  main.py                  CLI entry point
-  web_api.py               FastAPI web app
-  section_splitter.py      PDF auto-splitting logic
-  single_section_runner.py Single cross-section workflow
-  single_section_report_pdf.py
-  single_section_marker_pdf.py
-
-templates/                 Web page templates
-static/                    CSS styling
-web_uploads/               Uploaded PDFs, ignored by Git
-web_jobs/                  Web-generated results, ignored by Git
-runs_single_section/       CLI-generated results, ignored by Git
+http://127.0.0.1:8000/cross-section-analyzer
 ```
 
-## Current Limitations
+---
 
-This is a prototype engineering review assistant, not a replacement for licensed engineering judgment.
+## Output Files
 
-Known limitations:
+For each uploaded PDF, Civilneer generates:
 
-- Works best on clean cross-section PDFs
-- Auto-splitting currently targets stacked sections with station labels
-- Geometry extraction may miss or misclassify some linework
-- Crowded drawings may require manual review
-- A `REVIEW` result means the app is uncertain, not that the drawing is wrong
+- A marked PDF showing engineering review markers
+- A report PDF summarizing measurements, checks, and review statuses
+- A downloadable package containing the generated review outputs
 
-## Goal
+---
 
-The goal of this project is to demonstrate a practical engineering PDF QC workflow using Python, PDF processing, geometry extraction, FastAPI, Docker, and structured reporting.
+## Review Statuses
+
+Civilneer uses conservative engineering review statuses:
+
+| Status | Meaning |
+|--------|---------|
+| **PASS** | Measured evidence is within tolerance. |
+| **REVIEW** | The result is uncertain or close to the tolerance and should be checked manually. |
+| **FLAG** | Measured evidence appears inconsistent with the printed label. |
+
+---
+
+## Limitations
+
+Civilneer works from **PDF-extracted geometry**, not the original CAD model.
+
+Results may be affected by:
+
+- PDF export quality
+- Fragmented vector geometry
+- Missing or ambiguous grid labels
+- Overlapping annotations
+- Scanned or rasterized drawings
+- Non-standard drawing formats
+
+When sufficient confidence cannot be established, Civilneer returns **REVIEW** rather than claiming engineering certainty.
+
+---
+
+## Roadmap
+
+Planned improvements include:
+
+- Improved geometry feature recognition
+- Interactive visual candidate review
+- AI-assisted explanations for uncertain findings
+- User accounts and project history
+- Production deployment workflow
+
+---
+
+## License
+
+This project is shared as a portfolio project.
+
+Please add an appropriate open-source or commercial license before reuse or distribution.
+
