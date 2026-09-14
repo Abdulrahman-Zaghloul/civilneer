@@ -4,6 +4,8 @@
 
 [civilneer.com](https://civilneer.com) · Production SaaS · Private beta
 
+<img width="1054" height="696" alt="Screenshot 2026-09-14 161757" src="https://github.com/user-attachments/assets/5209af5d-1bff-4896-a9d2-ac95aa658111" />
+
 Civilneer checks the annotations on a roadway cross-section sheet against the drawing's own underlying geometry, and returns the sheet marked up. A review that takes an engineer 5–10 minutes per sheet by hand runs in under 5 seconds.
 
 > **Note on this repository:** the application source is private. This repo documents the architecture, the engineering decisions behind it, and what the system does. Happy to walk through the codebase in detail on request.
@@ -52,7 +54,7 @@ graph LR
 **5. Compute and compare.** NumPy computes the actual value from the matched geometry and compares it to the printed value within tolerance.
 
 **6. Annotate.** Results are written back into the PDF as inspectable highlights carrying the measured value, the printed value, and the delta.
-
+<img width="602" height="631" alt="Screenshot 2026-09-14 161720" src="https://github.com/user-attachments/assets/deb6cddf-38e8-40bc-a85a-4c2b26a6960c" />
 ## Architecture
 
 | Layer | Technology |
