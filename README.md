@@ -1,153 +1,101 @@
 # Civilneer
 
-Civilneer is a web-based PDF review assistant for civil engineering cross-section sheets. It analyzes uploaded cross-section PDFs, extracts slope and elevation labels, compares them against measured PDF geometry, and generates a marked PDF along with a text-based engineering review report.
+**Automated QC for civil engineering roadway cross-section drawings.**
 
-> **Disclaimer:** Civilneer is an engineering review aid. It does **not** replace review by a licensed Professional Engineer.
+[civilneer.com](https://civilneer.com) · Production SaaS · Private beta
 
----
+Civilneer checks the annotations on a roadway cross-section sheet against the drawing's own underlying geometry, and returns the sheet marked up. A review that takes an engineer 5–10 minutes per sheet by hand runs in under 5 seconds.
 
-## Features
-
-- Upload civil engineering cross-section PDFs
-- Detect printed slope labels such as `2.00%`, `1:4`, and `1:2`
-- Measure nearby PDF geometry and compare it against printed values
-- Detect elevation labels such as `EL. 45.50`
-- Calibrate profile grid elevations where possible
-- Generate:
-  - Marked PDF
-  - Text-based report PDF
-  - Downloadable review package
+> **Note on this repository:** the application source is private. This repo documents the architecture, the engineering decisions behind it, and what the system does. Happy to walk through the codebase in detail on request.
 
 ---
 
-## Current Scope
+## The problem
 
-Civilneer currently focuses on **cross-section review workflows**.
+On a civil roadway plan set, every cross section carries printed callouts: slope percentages, elevations, horizontal offsets. Those numbers are supposed to describe the geometry drawn next to them. Often they don't, because the drawing changed and the annotation didn't, or the annotation was wrong to begin with.
 
-Supported review areas include:
+Catching that means an engineer sitting with the sheet and manually verifying each callout against the linework. It's slow, it's tedious, and it's usually done by the most expensive person in the office. Anything missed goes to construction.
 
-- Slope label validation
-- Elevation label validation
-- Marked drawing generation
-- Compact engineering report generation
-- Local Docker-based web application workflow
+## What it does
 
----
+Upload a vector PDF. Get back the same sheet with every checked callout highlighted:
 
-## Tech Stack
+- **Yellow** — the printed value matches the geometry
+- **Red** — the printed value and the geometry disagree, review this
 
-- Python
-- FastAPI
-- Jinja2
-- PyMuPDF
-- pdfminer.six
-- Docker
-- HTML/CSS
+Hovering a highlight shows the measured value, the printed callout, and the difference between them. Nothing is hidden behind a score or a summary table. The engineer sees exactly what the system measured and makes the call.
 
----
+Published demo run: **3 sheets, 9 cross sections, 86 geometric checks, 6 flagged for review.**
 
-## Project Structure
+## How it works
 
-```text
-app/                 Core PDF analysis and web application logic
-app/checks/          Slope and elevation validation checks
-templates/           Jinja2 HTML templates
-static/              CSS and front-end assets
-Dockerfile           Container build
-docker-compose.yml   Local Docker workflow
+```mermaid
+graph LR
+    A[Vector PDF] --> B[Parse content stream]
+    B --> C[Reconstruct geometry]
+    B --> D[Extract callouts]
+    C --> E[Associate callout to geometry]
+    D --> E
+    E --> F[Compute + compare]
+    F --> G[Annotate PDF]
+    G --> H[Marked PDF]
 ```
 
----
+**1. Parse.** PyMuPDF reads the PDF content stream directly, pulling out vector path primitives and text spans with their exact positions. No OCR, no rasterization.
 
-## Running Locally
+**2. Reconstruct geometry.** Path primitives are assembled into Shapely geometries representing the cross-section linework, resolved into consistent coordinate and unit space.
 
-Clone the repository:
+**3. Extract callouts.** Text spans are parsed into typed values: slopes, elevations, horizontal offsets, each with its position on the sheet.
 
-```bash
-git clone git@github.com:Abdulrahman-Zaghloul/civilneer-public.git
-cd civilneer-public
-```
+**4. Associate.** Each callout is matched to the geometry it's describing based on its spatial relationship to the linework.
 
-Optional: create a local environment file if you want to customize runtime settings:
+**5. Compute and compare.** NumPy computes the actual value from the matched geometry and compares it to the printed value within tolerance.
 
-```bash
-cp .env.example .env
-```
+**6. Annotate.** Results are written back into the PDF as inspectable highlights carrying the measured value, the printed value, and the delta.
 
-Start the application:
+## Architecture
 
-```bash
-docker compose up --build
-```
+| Layer | Technology |
+|---|---|
+| Frontend | React, Next.js |
+| API | Python, FastAPI, async job handling |
+| Auth | OAuth 2.0 |
+| Database | PostgreSQL |
+| Geometry engine | PyMuPDF, Shapely, NumPy |
+| Deployment | Docker Compose on Linux, automated CI/CD |
 
-Open your browser:
+Built end to end solo: frontend, API, database, geometry engine, PDF pipeline, deployment.
 
-```text
-http://127.0.0.1:8000
-```
+## Engineering decisions
 
-The Cross-Section Analyzer is available at:
+**Vector PDFs only, no OCR.** Reading the content stream gives exact coordinates. OCR gives an estimate. A QC tool that is approximately right is worse than no tool, because it teaches the engineer to trust something that can silently be wrong. The cost of this decision is real: scanned and raster sheets aren't supported, which rules out a meaningful slice of the market. It's the right trade for a tool whose entire value is being correct.
 
-```text
-http://127.0.0.1:8000/cross-section-analyzer
-```
+**The output is a marked drawing, not a report.** Engineers already review drawings. Giving them a second artifact to reconcile against the first adds work. Marking up the sheet they were going to look at anyway means adoption costs nothing.
 
----
+**Findings are inspectable, not asserted.** Every highlight exposes its own inputs. The system never says "this is wrong," it says "here is what I measured, here is what the sheet says, here is the difference." The engineer remains the decision-maker, which is both correct professionally and the only defensible posture for software touching stamped work.
 
-## Output Files
+**Asynchronous job handling.** Parsing and geometry work is CPU-bound and varies widely with sheet complexity. The API accepts an upload, returns a job handle immediately, and processes out of band rather than holding a request open.
 
-For each uploaded PDF, Civilneer generates:
+**Self-hosted on a VPS with Docker Compose.** At beta scale, a managed cloud platform adds cost and a longer data path without solving a problem this system has. Containerizing everything keeps deploys reproducible and single-command, and keeps the whole stack portable if it needs to move later.
 
-- A marked PDF showing engineering review markers
-- A report PDF summarizing measurements, checks, and review statuses
-- A downloadable package containing the generated review outputs
+**Uploads are deleted after processing.** Drawings are held only as long as the job runs, then removed. They are never used to train or improve models. Plan sets are client-confidential and treating them otherwise would be disqualifying for the buyer.
 
----
+## Scope and limitations
 
-## Review Statuses
+Stated plainly, because a QC tool that oversells its coverage is a liability:
 
-Civilneer uses conservative engineering review statuses:
+- Roadway cross sections only
+- Vector PDFs only; scanned and raster sheets are not supported
+- No integrations. PDF in, PDF out. No Civil 3D, OpenRoads, or ProjectWise plugin
+- Web application only; a local/on-prem deployment option is planned
 
-| Status | Meaning |
-|--------|---------|
-| **PASS** | Measured evidence is within tolerance. |
-| **REVIEW** | The result is uncertain or close to the tolerance and should be checked manually. |
-| **FLAG** | Measured evidence appears inconsistent with the printed label. |
+## Status
+
+In private beta with practicing civil engineers, 180+ drawing sheets processed. Free during beta.
 
 ---
 
-## Limitations
+## Contact
 
-Civilneer works from **PDF-extracted geometry**, not the original CAD model.
-
-Results may be affected by:
-
-- PDF export quality
-- Fragmented vector geometry
-- Missing or ambiguous grid labels
-- Overlapping annotations
-- Scanned or rasterized drawings
-- Non-standard drawing formats
-
-When sufficient confidence cannot be established, Civilneer returns **REVIEW** rather than claiming engineering certainty.
-
----
-
-## Roadmap
-
-Planned improvements include:
-
-- Improved geometry feature recognition
-- Interactive visual candidate review
-- AI-assisted explanations for uncertain findings
-- User accounts and project history
-- Production deployment workflow
-
----
-
-## License
-
-This project is shared as a portfolio project.
-
-Please add an appropriate open-source or commercial license before reuse or distribution.
-
+**Abdulrahman (Abdul) Zaghloul**
+[abdulrahmanxzaghloul@gmail.com](mailto:abdulrahmanxzaghloul@gmail.com) · [LinkedIn](https://linkedin.com/in/Abdul-Zaghloul) · [civilneer.com](https://civilneer.com)
